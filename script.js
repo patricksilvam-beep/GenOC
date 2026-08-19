@@ -206,8 +206,8 @@ function renumberRows(){
 
 document.getElementById('btnAddItem').addEventListener('click', () => addItemRow());
 
-// filas iniciales (10, como la plantilla)
-for(let i = 0; i < 10; i++) addItemRow();
+// filas iniciales
+for(let i = 0; i < 2; i++) addItemRow();
 
 /* ==========================================================================
    TOTALES
