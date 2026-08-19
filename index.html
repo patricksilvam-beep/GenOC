@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generador de Órdenes de Compra</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-icon">📦</div>
+      <div>
+        <div class="sidebar-brand-title">Órdenes de Compra</div>
+        <div class="sidebar-brand-sub">Generador PDF</div>
+      </div>
+    </div>
+
+    <nav class="tabs">
+      <button class="tab-btn active" data-tab="orden">🧾 Orden de Compra</button>
+      <button class="tab-btn" data-tab="empresas">🏢 Empresas</button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button id="btnGenerarPdf" class="btn btn-primary btn-block">⬇️ Generar PDF</button>
+      <button id="btnLimpiar" class="btn btn-ghost btn-block">🗑️ Limpiar formulario</button>
+    </div>
+  </aside>
+
+  <!-- ============ MAIN CONTENT ============ -->
+  <main class="content">
+
+    <!-- ---------- TAB: EMPRESAS ---------- -->
+    <section id="tab-empresas" class="tab-panel">
+      <header class="panel-header">
+        <h1>Datos de las empresas</h1>
+        <p>Completa la información de cada empresa emisora. Estos datos se usarán para autocompletar la orden de compra al seleccionarlas.</p>
+      </header>
+
+      <div class="company-grid" id="companyGrid">
+        <!-- generado por JS -->
+      </div>
+    </section>
+
+    <!-- ---------- TAB: ORDEN DE COMPRA ---------- -->
+    <section id="tab-orden" class="tab-panel active">
+      <header class="panel-header">
+        <h1>Nueva Orden de Compra</h1>
+        <p>Selecciona la empresa emisora, completa los datos y genera el PDF con el formato oficial.</p>
+      </header>
+
+      <form id="ordenForm" class="form">
+
+        <!-- Empresa emisora + N° de orden -->
+        <div class="card">
+          <h2 class="card-title">Empresa emisora y datos de la orden</h2>
+          <div class="grid grid-3">
+            <div class="field">
+              <label for="empresaSelect">Empresa *</label>
+              <select id="empresaSelect" required>
+                <option value="">-- Selecciona una empresa --</option>
+                <option value="global_fruit">GLOBAL FRUIT PERU E.I.R.L.</option>
+                <option value="premium_fruit">PREMIUM FRUIT PERU</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="ocNumero">N.° de Orden de Compra *</label>
+              <input type="text" id="ocNumero" placeholder="Ej: OC-2026-001" required>
+            </div>
+            <div class="field">
+              <label for="moneda">Moneda</label>
+              <select id="moneda">
+                <option value="S/">Soles (S/)</option>
+                <option value="US$">Dólares (US$)</option>
+                <option value="€">Euros (€)</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="fechaEmision">Fecha de emisión</label>
+              <input type="date" id="fechaEmision">
+            </div>
+          </div>
+        </div>
+
+        <!-- Datos empresa (autocompletado, editable) + proveedor -->
+        <div class="grid grid-2">
+          <div class="card">
+            <h2 class="card-title">Datos de la empresa (auto)</h2>
+            <div class="field">
+              <label>Razón Social</label>
+              <input type="text" id="empRazonSocial" placeholder="Se autocompleta al elegir empresa">
+            </div>
+            <div class="field">
+              <label>RUC</label>
+              <input type="text" id="empRuc">
+            </div>
+            <div class="field">
+              <label>Dirección</label>
+              <textarea id="empDireccion" rows="2"></textarea>
+            </div>
+            <div class="field">
+              <label>Teléfonos</label>
+              <input type="text" id="empTelefonos">
+            </div>
+            <div class="field">
+              <label>Correos</label>
+              <textarea id="empCorreos" rows="2"></textarea>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2 class="card-title">Datos del proveedor</h2>
+            <div class="field">
+              <label>Razón Social</label>
+              <input type="text" id="provRazonSocial" placeholder="Razón social del proveedor">
+            </div>
+            <div class="field">
+              <label>RUC / DNI</label>
+              <input type="text" id="provRuc">
+            </div>
+            <div class="field">
+              <label>Dirección</label>
+              <textarea id="provDireccion" rows="2"></textarea>
+            </div>
+            <div class="field">
+              <label>Contacto</label>
+              <input type="text" id="provContacto">
+            </div>
+            <div class="field">
+              <label>Teléfono</label>
+              <input type="text" id="provTelefono">
+            </div>
+            <div class="field">
+              <label>Correo</label>
+              <input type="text" id="provCorreo">
+            </div>
+          </div>
+        </div>
+
+        <!-- Items -->
+        <div class="card">
+          <div class="card-title-row">
+            <h2 class="card-title">Ítems de la orden</h2>
+            <button type="button" id="btnAddItem" class="btn btn-secondary btn-sm">+ Agregar fila</button>
+          </div>
+          <div class="table-wrap">
+            <table id="itemsTable" class="items-table">
+              <thead>
+                <tr>
+                  <th class="col-item">Ítem</th>
+                  <th class="col-desc">Descripción del producto / servicio</th>
+                  <th class="col-unidad">Unidad</th>
+                  <th class="col-cant">Cantidad</th>
+                  <th class="col-precio">Precio unitario</th>
+                  <th class="col-importe">Importe</th>
+                  <th class="col-actions"></th>
+                </tr>
+              </thead>
+              <tbody id="itemsBody">
+                <!-- generado por JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Condiciones + resumen -->
+        <div class="grid grid-2">
+          <div class="card">
+            <h2 class="card-title">Condiciones comerciales</h2>
+            <div class="field">
+              <label>💳 Forma de pago</label>
+              <input type="text" id="formaPago">
+            </div>
+            <div class="field">
+              <label>📅 Plazo de pago</label>
+              <input type="text" id="plazoPago">
+            </div>
+            <div class="field">
+              <label>🚚 Plazo de entrega</label>
+              <input type="text" id="plazoEntrega">
+            </div>
+            <div class="field">
+              <label>📍 Lugar de entrega</label>
+              <input type="text" id="lugarEntrega">
+            </div>
+          </div>
+
+          <div class="card">
+            <h2 class="card-title">Resumen de importes</h2>
+            <div class="field">
+              <label>Subtotal</label>
+              <input type="text" id="subtotal" readonly>
+            </div>
+            <div class="field">
+              <label>IGV (18%)</label>
+              <input type="text" id="igv" readonly>
+            </div>
+            <div class="field">
+              <label>Otros cargos / descuentos</label>
+              <input type="number" id="otrosCargos" value="0" step="0.01">
+            </div>
+            <div class="field field-total">
+              <label>TOTAL</label>
+              <input type="text" id="total" readonly>
+            </div>
+          </div>
+        </div>
+
+        <!-- Información adicional -->
+        <div class="card">
+          <h2 class="card-title">Información adicional</h2>
+          <div class="field">
+            <label>N.° de cotización / referencia</label>
+            <input type="text" id="cotizacionRef">
+          </div>
+          <div class="field">
+            <label>Observaciones / instrucciones especiales</label>
+            <textarea id="observaciones" rows="3"></textarea>
+          </div>
+        </div>
+
+        <!-- Firmas -->
+        <div class="card">
+          <h2 class="card-title">Elaborado / Revisado / Aprobado por</h2>
+          <div class="grid grid-3">
+            <div class="signature-block">
+              <h3>Elaborado por</h3>
+              <div class="field"><label>Nombre</label><input type="text" id="elabNombre"></div>
+              <div class="field"><label>Cargo</label><input type="text" id="elabCargo"></div>
+              <div class="field"><label>Fecha</label><input type="date" id="elabFecha"></div>
+            </div>
+            <div class="signature-block">
+              <h3>Revisado por</h3>
+              <div class="field"><label>Nombre</label><input type="text" id="revNombre"></div>
+              <div class="field"><label>Cargo</label><input type="text" id="revCargo"></div>
+              <div class="field"><label>Fecha</label><input type="date" id="revFecha"></div>
+            </div>
+            <div class="signature-block">
+              <h3>Aprobado por</h3>
+              <div class="field"><label>Nombre</label><input type="text" id="aprNombre"></div>
+              <div class="field"><label>Cargo</label><input type="text" id="aprCargo"></div>
+              <div class="field"><label>Fecha</label><input type="date" id="aprFecha"></div>
+            </div>
+          </div>
+        </div>
+
+      </form>
+    </section>
+
+  </main>
+</div>
+
+<!-- ============ PLANTILLA DE IMPRESIÓN (oculta, usada para el PDF) ============ -->
+<div id="printArea" class="print-area">
+  <div class="doc" id="docPage">
+
+    <div class="doc-header">
+      <div class="doc-header-logo">
+        <img id="docLogo" src="" alt="logo">
+      </div>
+      <div class="doc-header-title">
+        <h1>ORDEN<br>DE COMPRA</h1>
+      </div>
+      <div class="doc-header-ocbox">
+        <div class="ocbox-title">N.° DE ORDEN DE COMPRA</div>
+        <div class="ocbox-body">
+          <div class="ocbox-row"><span>O/C N.°</span><b id="docOcNumero"></b></div>
+          <div class="ocbox-row"><span>FECHA DE EMISIÓN</span><b id="docFecha"></b></div>
+          <div class="ocbox-row"><span>MONEDA</span><b id="docMoneda"></b></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="doc-two-col">
+      <div class="doc-box">
+        <div class="doc-box-title" id="docBoxEmpresaTitle">DATOS DE LA EMPRESA</div>
+        <div class="doc-box-body">
+          <div class="doc-row"><span class="doc-label">Razón Social</span><span class="doc-val" id="docEmpRazon"></span></div>
+          <div class="doc-row"><span class="doc-label">RUC</span><span class="doc-val" id="docEmpRuc"></span></div>
+          <div class="doc-row"><span class="doc-label">Dirección</span><span class="doc-val" id="docEmpDireccion"></span></div>
+          <div class="doc-row"><span class="doc-label">Teléfonos</span><span class="doc-val" id="docEmpTelefonos"></span></div>
+          <div class="doc-row"><span class="doc-label">Correos</span><span class="doc-val" id="docEmpCorreos"></span></div>
+        </div>
+      </div>
+      <div class="doc-box">
+        <div class="doc-box-title doc-box-title-green">DATOS DEL PROVEEDOR</div>
+        <div class="doc-box-body">
+          <div class="doc-row"><span class="doc-label">Razón Social</span><span class="doc-val" id="docProvRazon"></span></div>
+          <div class="doc-row"><span class="doc-label">RUC / DNI</span><span class="doc-val" id="docProvRuc"></span></div>
+          <div class="doc-row"><span class="doc-label">Dirección</span><span class="doc-val" id="docProvDireccion"></span></div>
+          <div class="doc-row"><span class="doc-label">Contacto</span><span class="doc-val" id="docProvContacto"></span></div>
+          <div class="doc-row"><span class="doc-label">Teléfono</span><span class="doc-val" id="docProvTelefono"></span></div>
+          <div class="doc-row"><span class="doc-label">Correo</span><span class="doc-val" id="docProvCorreo"></span></div>
+        </div>
+      </div>
+    </div>
+
+    <table class="doc-items-table" id="docItemsTable">
+      <thead>
+        <tr>
+          <th class="w-item">ÍTEM</th>
+          <th class="w-desc">DESCRIPCIÓN DEL PRODUCTO / SERVICIO</th>
+          <th class="w-unidad">UNIDAD</th>
+          <th class="w-cant">CANTIDAD</th>
+          <th class="w-precio">PRECIO UNITARIO</th>
+          <th class="w-importe">IMPORTE</th>
+        </tr>
+      </thead>
+      <tbody id="docItemsBody"></tbody>
+    </table>
+
+    <div class="doc-two-col doc-two-col-bottom">
+      <div class="doc-box">
+        <div class="doc-box-title doc-box-title-green">CONDICIONES COMERCIALES</div>
+        <div class="doc-box-body doc-cond-body">
+          <div class="doc-cond-row"><span class="doc-icon">💳</span><span class="doc-cond-label">FORMA DE PAGO</span><span class="doc-cond-val" id="docFormaPago"></span></div>
+          <div class="doc-cond-row"><span class="doc-icon">📅</span><span class="doc-cond-label">PLAZO DE PAGO</span><span class="doc-cond-val" id="docPlazoPago"></span></div>
+          <div class="doc-cond-row"><span class="doc-icon">🚚</span><span class="doc-cond-label">PLAZO DE ENTREGA</span><span class="doc-cond-val" id="docPlazoEntrega"></span></div>
+          <div class="doc-cond-row"><span class="doc-icon">📍</span><span class="doc-cond-label">LUGAR DE ENTREGA</span><span class="doc-cond-val" id="docLugarEntrega"></span></div>
+        </div>
+      </div>
+      <div class="doc-box">
+        <div class="doc-box-title">RESUMEN DE IMPORTES</div>
+        <div class="doc-box-body">
+          <div class="doc-row"><span class="doc-label">SUBTOTAL</span><span class="doc-val" id="docSubtotal"></span></div>
+          <div class="doc-row"><span class="doc-label">IGV (18%)</span><span class="doc-val" id="docIgv"></span></div>
+          <div class="doc-row"><span class="doc-label">OTROS CARGOS / DESCUENTOS</span><span class="doc-val" id="docOtros"></span></div>
+          <div class="doc-row doc-row-total"><span class="doc-label">TOTAL</span><span class="doc-val" id="docTotal"></span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="doc-info-adicional">
+      <div class="doc-box-title">INFORMACIÓN ADICIONAL</div>
+      <div class="doc-box-body">
+        <div class="doc-row"><span class="doc-label">N.° DE COTIZACIÓN / REFERENCIA</span><span class="doc-val" id="docCotizacionRef"></span></div>
+        <div class="doc-row"><span class="doc-label">OBSERVACIONES / INSTRUCCIONES ESPECIALES</span><span class="doc-val" id="docObservaciones"></span></div>
+      </div>
+    </div>
+
+    <div class="doc-firmas">
+      <div class="doc-firma-box">
+        <div class="doc-firma-head"><span class="doc-firma-icon">👤</span><span>ELABORADO POR</span></div>
+        <div class="doc-firma-line"><span class="doc-label">NOMBRE</span><span class="doc-val" id="docElabNombre"></span></div>
+        <div class="doc-firma-line"><span class="doc-label">CARGO</span><span class="doc-val" id="docElabCargo"></span></div>
+        <div class="doc-firma-line"><span class="doc-label">FECHA</span><span class="doc-val" id="docElabFecha"></span></div>
+        <div class="doc-firma-signature">FIRMA</div>
+      </div>
+      <div class="doc-firma-box">
+        <div class="doc-firma-head"><span class="doc-firma-icon">📋</span><span>REVISADO POR</span></div>
+        <div class="doc-firma-line"><span class="doc-label">NOMBRE</span><span class="doc-val" id="docRevNombre"></span></div>
+        <div class="doc-firma-line"><span class="doc-label">CARGO</span><span class="doc-val" id="docRevCargo"></span></div>
+        <div class="doc-firma-line"><span class="doc-label">FECHA</span><span class="doc-val" id="docRevFecha"></span></div>
+        <div class="doc-firma-signature">FIRMA</div>
+      </div>
+      <div class="doc-firma-box">
+        <div class="doc-firma-head"><span class="doc-firma-icon">🏅</span><span>APROBADO POR</span></div>
+        <div class="doc-firma-line"><span class="doc-label">NOMBRE</span><span class="doc-val" id="docAprNombre"></span></div>
+        <div class="doc-firma-line"><span class="doc-label">CARGO</span><span class="doc-val" id="docAprCargo"></span></div>
+        <div class="doc-firma-line"><span class="doc-label">FECHA</span><span class="doc-val" id="docAprFecha"></span></div>
+        <div class="doc-firma-signature">FIRMA</div>
+      </div>
+    </div>
+
+    <div class="doc-notes">
+      <div class="doc-notes-left">
+        <div class="doc-notes-title">NOTAS IMPORTANTES</div>
+        <ul>
+          <li>La presente Orden de Compra se encuentra sujeta a las condiciones indicadas en este documento.</li>
+          <li>Sírvase indicar el número de Orden de Compra en todos sus documentos de despacho y facturación.</li>
+          <li>Enviar la factura a nombre de <span id="docFacturarA"></span>.</li>
+        </ul>
+      </div>
+      <div class="doc-thanks">¡Gracias por ser parte de<br>nuestra cadena de valor!</div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="logos.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
